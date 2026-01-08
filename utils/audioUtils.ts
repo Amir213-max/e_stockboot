@@ -1,7 +1,30 @@
-import { Blob } from '@google/genai';
+// Audio utility functions for Next.js (works in both server and client)
+// No external dependencies - uses standard Web APIs
+
+// Helper to decode base64 (works in both browser and Node.js 18+)
+function decodeBase64(base64: string): string {
+  if (typeof window !== 'undefined') {
+    // Browser environment
+    return atob(base64);
+  } else {
+    // Node.js environment (18+ has global atob, but we use Buffer for compatibility)
+    return Buffer.from(base64, 'base64').toString('binary');
+  }
+}
+
+// Helper to encode to base64 (works in both browser and Node.js)
+function encodeBase64(binary: string): string {
+  if (typeof window !== 'undefined') {
+    // Browser environment
+    return btoa(binary);
+  } else {
+    // Node.js environment (18+ has global btoa, but we use Buffer for compatibility)
+    return Buffer.from(binary, 'binary').toString('base64');
+  }
+}
 
 export function base64ToUint8Array(base64: string): Uint8Array {
-  const binaryString = atob(base64);
+  const binaryString = decodeBase64(base64);
   const len = binaryString.length;
   const bytes = new Uint8Array(len);
   for (let i = 0; i < len; i++) {
@@ -17,7 +40,7 @@ export function arrayBufferToBase64(buffer: ArrayBuffer): string {
   for (let i = 0; i < len; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
-  return btoa(binary);
+  return encodeBase64(binary);
 }
 
 export function pcmToWav(pcmData: Int16Array, sampleRate: number): ArrayBuffer {
@@ -68,7 +91,13 @@ function writeString(view: DataView, offset: number, string: string) {
   }
 }
 
-export function createPcmBlob(data: Float32Array): Blob {
+// Custom type for PCM audio data (not a real Blob, but compatible structure)
+export interface PcmAudioData {
+  data: string; // base64 encoded PCM data
+  mimeType: string;
+}
+
+export function createPcmBlob(data: Float32Array): PcmAudioData {
   const l = data.length;
   const int16 = new Int16Array(l);
   for (let i = 0; i < l; i++) {
