@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { localAI } from '@/services/local-ai';
 import { db } from '@/services/db';
-import { ChatLog } from '@/types';
+import { ChatLog, UserEmotion } from '@/types';
 
 interface Message {
   id: string;
@@ -297,7 +297,7 @@ const BotInterface: React.FC<BotInterfaceProps> = ({ onSessionEnd, onAdminClick,
         // البحث عن الأسئلة غير المطابقة في المحادثة
         const userMessages = messages.filter(m => m.role === 'user');
         let unmatchedQuestion: string | undefined;
-        let detectedEmotion: 'angry' | 'rushed' | 'normal' = clientInfo.emotion || 'normal';
+        let detectedEmotion: UserEmotion = clientInfo.emotion || 'normal';
         
         // البحث عن آخر سؤال قد يكون غير مطابق
         for (let i = userMessages.length - 1; i >= 0; i--) {

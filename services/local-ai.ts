@@ -1,6 +1,6 @@
 // نظام AI محلي - Human-like Support Agent
 import { db } from './db';
-import { KnowledgeSnippet, KBItemFull, ChatLog } from '@/types';
+import { KnowledgeSnippet, KBItemFull, ChatLog, UserEmotion } from '@/types';
 
 interface SearchResult {
   score: number;
@@ -178,7 +178,7 @@ export class LocalAI {
   }
   
   // User Emotion Classification
-  classifyEmotion(text: string): 'angry' | 'rushed' | 'normal' {
+  classifyEmotion(text: string): UserEmotion {
     const normalized = this.normalizeArabic(text);
     const lower = text.toLowerCase();
     
@@ -463,7 +463,7 @@ export class LocalAI {
   }
 
   // Human Response Wrapper - Prefix & Suffix مع Emotion-Aware
-  private wrapHumanResponse(content: string, intent?: DetectedIntent | null, emotion?: 'angry' | 'rushed' | 'normal'): string {
+  private wrapHumanResponse(content: string, intent?: DetectedIntent | null, emotion?: UserEmotion): string {
     // منع أي رد فيه "مش عارف" أو "غير متوفر" أو "لا يمكن"
     const forbiddenPhrases = ['مش عارف', 'غير متوفر', 'لا يمكن', 'مش متوفر', 'مش موجود', 'مش متاح'];
     for (const phrase of forbiddenPhrases) {
@@ -582,7 +582,7 @@ export class LocalAI {
   }
 
   // Smart Fallback - اقتراح مسار أو سؤال توضيحي (مع Emotion-Aware)
-  private smartFallback(query: string, docResults: SearchResult[], emotion?: 'angry' | 'rushed' | 'normal'): string {
+  private smartFallback(query: string, docResults: SearchResult[], emotion?: UserEmotion): string {
     const intent = this.detectIntent(query);
     const normalizedQuery = this.normalizeArabic(query);
     
@@ -745,11 +745,11 @@ export class LocalAI {
   }
   
   // Helper method للحصول على emotion للسؤال
-  getEmotionForQuestion(question: string): 'angry' | 'rushed' | 'normal' {
+  getEmotionForQuestion(question: string): UserEmotion {
     return this.classifyEmotion(question);
   }
 
-  private formatResponse(bestResult: SearchResult, allResults: SearchResult[], intent: DetectedIntent | null, userMessage: string, emotion?: 'angry' | 'rushed' | 'normal'): string {
+  private formatResponse(bestResult: SearchResult, allResults: SearchResult[], intent: DetectedIntent | null, userMessage: string, emotion?: UserEmotion): string {
     let response = bestResult.content;
     const path = bestResult.path || this.extractOfficialPath(bestResult.content);
 
@@ -796,8 +796,9 @@ export class LocalAI {
       response = path + '\n\n' + response;
     }
     
-    // ربط معلومات إضافية ذكياً (فقط للمستخدم العادي)
-    if (emotion !== 'rushed' && allResults.length > 1) {
+    // ربط معلومات إضافية ذكياً (فقط للمستخدم العادي - ليس rushed)
+    // Note: 'rushed' is already handled above with early return, so emotion here is either 'angry' | 'normal' | undefined
+    if (emotion && allResults.length > 1) {
       const relatedInfo = allResults[1].content;
       const relatedPath = allResults[1].path || this.extractOfficialPath(relatedInfo);
       
@@ -815,10 +816,10 @@ export class LocalAI {
   }
 
   // استخراج اسم العميل من الرسالة مع Emotion
-  extractClientInfo(messages: any[]): { name: string; summary: string; emotion?: 'angry' | 'rushed' | 'normal' } {
+  extractClientInfo(messages: any[]): { name: string; summary: string; emotion?: UserEmotion } {
     let name = 'زائر';
     let summary = 'محادثة عامة';
-    let detectedEmotion: 'angry' | 'rushed' | 'normal' = 'normal';
+    let detectedEmotion: UserEmotion = 'normal';
 
     for (const msg of messages) {
       if (msg.role === 'user') {

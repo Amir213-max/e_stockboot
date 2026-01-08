@@ -1,4 +1,7 @@
 
+// User Emotion Type - Single Source of Truth
+export type UserEmotion = 'angry' | 'rushed' | 'normal';
+
 export interface KBItem {
   id: string;
   question: string;
@@ -21,7 +24,7 @@ export interface ChatLog {
   botResponse: string; // Summary
   clientName?: string; // Extracted client name
   duration: number;
-  emotion?: 'angry' | 'rushed' | 'normal'; // User emotion classification
+  emotion?: UserEmotion; // User emotion classification
   unmatchedQuestion?: string; // للأسئلة التي لم يتم العثور على إجابة لها
 }
 
