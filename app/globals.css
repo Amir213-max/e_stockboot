@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
+
+html,
+body {
+  height: 100%;
+  overscroll-behavior-y: none; /* Prevent pull-to-refresh bounce */
+}
+
+body {
+  font-family: 'Cairo', sans-serif;
+}
+
+/* Custom scrollbar for chat logs */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
+
+
+
+
+
+
